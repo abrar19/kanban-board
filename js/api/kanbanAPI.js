@@ -28,9 +28,9 @@ export default class kanbanAPI{
 
     static updateItem(itemId, newProps){
         const data = read();
-        const [item, currentColumn] = (() => {
-            for(const column of data){
-                const item = column.items.find(item => item.id == itemId);
+        const [item, currentColumn] = ( () => {
+            for (const column of data){
+                const item = column.items.find(item => itemId == item.id);
 
                 if(item){
                     return [item, column];
@@ -43,11 +43,46 @@ export default class kanbanAPI{
         }
 
         item.content = newProps.content === undefined ? item.content : newProps.content;
-
-        //Update column and position
-        if(newProps.columnId !== undefined){
-            
+        
+        /* TERNARY - EXPLANATION
+        
+        if(newProps.content === undefined){
+            item.content = item.content;
+        }else{
+            item.content = newProps.content;
         }
+        
+        */
+
+        // Update column and position
+        if(newProps.columnId !== undefined && newProps.position !== undefined){
+            const targetColumn = data.find(column => column.id == newProps.columnId);
+
+            if(!targetColumn){
+                throw new Error('Target column does not exist!');
+            }
+
+            //Delete an item from it's current column
+            currentColumn.items.splice(currentColumn.items.indexOf(item), 1);
+
+            //Move item into it's new column and position
+            targetColumn.items.splice(newProps.position, 0, item);
+        }
+
+        save(data);
+    }
+
+    static deleteItem(itemId){
+        const data = read();
+
+        for(const column of data){
+            const item = column.items.find(item => item.id == itemId);
+
+            if(item){
+                column.items.splice(column.items.indexOf(item), 1);
+            }
+        }
+        save(data);
     }
 }
 
@@ -67,7 +102,7 @@ function read(){
                 id:3,
                 items: []
             }
-        ];
+        ]; 
     }
 
     return JSON.parse(json);
@@ -77,17 +112,20 @@ function save(data){
     localStorage.setItem('kanban-data', JSON.stringify(data));
 }
 
-// [
-//     {"id": 1, "items":[
-//             {"id": 72714, "content": "Edit Video"},
-//             {"id": 72715, "content": "Learn to Code"},
-//             {"id": 72716, "content": "Practice Guitar"}
-//         ]
-//     },
-//     {"id": 1, "items":[
-//             {"id": 72714, "content": "Edit Video"},
-//             {"id": 72715, "content": "Learn to Code"},
-//             {"id": 72716, "content": "Practice Guitar"}
-//         ]
-//     }
-// ]
+/*
+[
+    {"id": 1,
+     "items":
+            [{"id": 72714, "content": "Edit Video"},
+            {"id": 72715, "content": "Learn to Code"},
+            {"id": 72716, "content": "Practice Guitar"}]
+    },
+
+    {"id": 2,
+     "items":
+            [{"id": 82714, "content": "Edit Blanket"},
+            {"id": 82715, "content": "Learn to Class"},
+            {"id": 82716, "content": "Practice Chair"}]
+    }
+]
+*/
