@@ -24,6 +24,16 @@ export default class Item{
         }
 
         this.elements.input.addEventListener('blur', onBlur);
+        this.elements.root.addEventListener('dblclick', ()=>{
+            const check = confirm("Are you sure you want to delete this item?");
+
+            if(check){
+                kanbanAPI.deleteItem(id);
+
+                this.elements.input.removeEventListener('blur', onBlur);
+                this.elements.root.parentElement.removeChild(this.elements.root);
+            }
+        });
     }
 
     static createRoot(){
